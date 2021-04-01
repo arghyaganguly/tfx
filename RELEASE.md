@@ -3,9 +3,6 @@
 ## Major Features and Improvements
 
 ## Breaking Changes
-*  Default orchestration engine of CLI was changed to `local` orchestrator from
-   `beam` orchestrator. You can still use `beam` orchestrator with
-   `--engine=beam` flag.
 
 ### For Pipeline Authors
 
@@ -14,9 +11,6 @@
 ## Deprecations
 
 ## Bug Fixes and Other Changes
-*   Factored out tensorflow-ranking example dependencies into a dedicated extra
-    `[tf-ranking]`. Because TensorFlow Ranking requires TF 2 or later, we cound
-    not install `[examples]` with TF1.
 
 ## Documentation Updates
 
@@ -86,7 +80,6 @@
 *   Depends on `tensorflow-model-analysis>=0.29.0,<0.30.0`.
 *   Depends on `tensorflow-transform>=0.29.0,<0.30.0`.
 *   Depends on `tfx-bsl>=0.29.0,<0.30.0`.
-*   Depends on `google-cloud-aiplatform>=0.5.0,<0.6`.
 
 ## Documentation Updates
 

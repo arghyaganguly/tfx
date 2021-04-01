@@ -113,11 +113,10 @@ def make_required_install_packages():
 
 def make_extra_packages_test():
   """Prepare extra packages needed for running unit tests."""
-  # Note: It is okay to pin packages to exact versions in this list to minimize
+  # Note: It is okay to pin packages to exact verions in this list to minimize
   # conflicts.
   return [
       'apache-airflow[mysql]>=1.10.14,<3',
-      'google-cloud-aiplatform>=0.5.0,<0.6',
       # TODO(b/183898519): Remove linter directives and use tfx[kubeflow]
       # in relevant files.
       # LINT.IfChange
@@ -127,7 +126,7 @@ def make_extra_packages_test():
       'pytest>=5,<6',
       # TODO(b/182848576): Delete pinned sqlalchemy after apache-airflow 2.0.2
       # or later.(github.com/apache/airflow/issues/14811)
-      'sqlalchemy>=1.3,<1.4',
+      'sqlalchemy>=1.3, <1.4',
       # TODO(b/175740170): Delete pinned werkzeug version after using the new
       # pip resolver.
       'werkzeug==0.16.1',
@@ -150,17 +149,6 @@ def make_extra_packages_tfjs():
   ]
 
 
-def make_extra_packages_tf_ranking():
-  # Packages needed for tf-ranking which is used in tfx/examples/ranking.
-  return [
-      'tensorflow-ranking>=0.3.3,<0.4',
-      'struct2tensor' + select_constraint(
-          default='>=0.29,<0.30',
-          nightly='>=0.30.0.dev',
-          git_master='@git+https://github.com/google/struct2tensor@master'),
-  ]
-
-
 def make_extra_packages_examples():
   # Extra dependencies required for tfx/examples.
   return [
@@ -176,6 +164,9 @@ def make_extra_packages_examples():
       # Required for tfx/examples/cifar10
       'flatbuffers>=1.12,<2',
       'tflite-support>=0.1.0a1,<0.1.1',
+      # Required for tfx/examples/ranking
+      'tensorflow-ranking>=0.3.3,<0.4',
+      'struct2tensor>=0.29,<0.30',
       # Required for tfx/examples/penguin/experimental
       # LINT.IfChange
       'scikit-learn>=0.23,<0.24',
@@ -194,6 +185,5 @@ def make_extra_packages_all():
   return [
       *make_extra_packages_test(),
       *make_extra_packages_tfjs(),
-      *make_extra_packages_tf_ranking(),
       *make_extra_packages_examples(),
   ]
