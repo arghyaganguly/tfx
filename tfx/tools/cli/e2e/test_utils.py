@@ -22,7 +22,6 @@ from tfx.components import CsvExampleGen
 from tfx.components import SchemaGen
 from tfx.components import StatisticsGen
 from tfx.dsl.components.base.base_component import BaseComponent
-from tfx.utils import dsl_utils
 
 from tensorflow.python.lib.io import file_io  # pylint: disable=g-direct-tensorflow-import
 
@@ -39,9 +38,8 @@ def create_e2e_components(csv_input_location: Text,) -> List[BaseComponent]:
   Returns:
     A list of TFX components that constitutes an end-to-end test pipeline.
   """
-  examples = dsl_utils.external_input(csv_input_location)
 
-  example_gen = CsvExampleGen(input=examples)
+  example_gen = CsvExampleGen(input_base=csv_input_location)
   statistics_gen = StatisticsGen(examples=example_gen.outputs['examples'])
   schema_gen = SchemaGen(
       statistics=statistics_gen.outputs['statistics'],

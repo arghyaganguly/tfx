@@ -17,4 +17,3 @@ from tfx.v1 import components
 from tfx.v1 import dsl
 from tfx.v1 import orchestration
 from tfx.v1 import proto
-from tfx.v1 import utils

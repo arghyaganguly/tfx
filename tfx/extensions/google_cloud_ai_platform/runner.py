@@ -104,9 +104,7 @@ def _launch_aip_training(
     job_id: Text,
     project: Text,
     training_input: Dict[Text, Any],
-    job_labels: Optional[Dict[Text, Text]] = None,
-    enable_ucaip: Optional[bool] = False,
-    ucaip_region: Optional[Text] = None) -> None:
+    job_labels: Optional[Dict[Text, Text]] = None) -> None:
   """Launches and monitors a AIP custom training job.
 
   Args:
@@ -116,22 +114,22 @@ def _launch_aip_training(
       https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#TrainingInput
       for the detailed schema.
     job_labels: The dict of labels that will be attached to this job.
-    enable_ucaip: Whether to enable uCAIP or not.
-    ucaip_region: Region for endpoint in uCAIP training.
 
   Raises:
     RuntimeError: if the Google Cloud AI Platform training job failed/cancelled.
     ConnectionError: if the status polling of the training job failed due to
       connection issue.
   """
-  # TODO(b/185159702): Migrate all training jobs to uCAIP and remove the
-  #                    enable_ucaip switch.
-  client = training_clients.get_job_client(enable_ucaip, ucaip_region)
-  # Configure and launch AI Platform training job
-  client.launch_job(job_id, project, training_input, job_labels)
+  client = training_clients.get_job_client()
+  # Configure AI Platform training job
+  project_id = 'projects/{}'.format(project)
+
+  client.launch_job(job_id, project_id, training_input, job_labels)
 
   # Wait for AIP Training job to finish
-  response = client.get_job()
+  job_name = '{}/jobs/{}'.format(project_id, job_id)
+  request = client.get_job_request()
+  response = request.execute()
   retry_count = 0
 
   # Monitors the long-running operation by polling the job state periodically,
@@ -151,10 +149,10 @@ def _launch_aip_training(
   # for a detailed description of the problem. If the error persists for
   # _CONNECTION_ERROR_RETRY_LIMIT consecutive attempts, the function will raise
   # ConnectionError.
-  while client.get_job_state(response) not in client.JOB_STATES_COMPLETED:
+  while response['state'] not in ('SUCCEEDED', 'FAILED', 'CANCELLED'):
     time.sleep(_POLLING_INTERVAL_IN_SECONDS)
     try:
-      response = client.get_job()
+      response = request.execute()
       retry_count = 0
     # Handle transient connection error.
     except ConnectionError as err:
@@ -165,19 +163,20 @@ def _launch_aip_training(
             'recreate the API client.', err, job_id)
         # Recreate the Python API client.
         client.create_client()
+        request = client.get_job_request()
       else:
         logging.error('Request failed after %s retries.',
                       _CONNECTION_ERROR_RETRY_LIMIT)
         raise
 
-  if client.get_job_state(response) in client.JOB_STATES_FAILED:
+  if response['state'] in ('FAILED', 'CANCELLED'):
     err_msg = 'Job \'{}\' did not succeed.  Detailed response {}.'.format(
-        client.get_job_name(), response)
+        job_name, response)
     logging.error(err_msg)
     raise RuntimeError(err_msg)
 
   # AIP training complete
-  logging.info('Job \'%s\' successful.', client.get_job_name())
+  logging.info('Job \'%s\' successful.', job_name)
 
 
 def _wait_for_operation(api: discovery.Resource, operation: Dict[Text, Any],
@@ -213,9 +212,7 @@ def start_aip_training(input_dict: Dict[Text, List[types.Artifact]],
                        exec_properties: Dict[Text,
                                              Any], executor_class_path: Text,
                        training_inputs: Dict[Text,
-                                             Any], job_id: Optional[Text],
-                       enable_ucaip: Optional[bool] = False,
-                       ucaip_region: Optional[Text] = None):
+                                             Any], job_id: Optional[Text]):
   """Start a trainer job on AI Platform (AIP).
 
   This is done by forwarding the inputs/outputs/exec_properties to the
@@ -233,13 +230,11 @@ def start_aip_training(input_dict: Dict[Text, List[types.Artifact]],
     job_id: Job ID for AI Platform Training job. If not supplied,
       system-determined unique ID is given. Refer to
     https://cloud.google.com/ml-engine/reference/rest/v1/projects.jobs#resource-job
-    enable_ucaip: Whether to enable uCAIP or not.
-    ucaip_region: Region for endpoint in uCAIP training.
 
   Returns:
     None
   """
-  client = training_clients.get_job_client(enable_ucaip, ucaip_region)
+  client = training_clients.get_job_client()
   training_args = client.create_training_args(input_dict, output_dict,
                                               exec_properties,
                                               executor_class_path,
@@ -249,9 +244,7 @@ def start_aip_training(input_dict: Dict[Text, List[types.Artifact]],
       job_id=training_args['job_id'],
       project=training_args['project'],
       training_input=training_args['training_input'],
-      job_labels=training_args['job_labels'],
-      enable_ucaip=enable_ucaip,
-      ucaip_region=ucaip_region)
+      job_labels=training_args['job_labels'])
 
 
 # TODO(zhitaoli): remove this function since we are not going to support

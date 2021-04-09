@@ -38,7 +38,6 @@ from tfx.proto import trainer_pb2
 from tfx.types import Channel
 from tfx.types.standard_artifacts import Model
 from tfx.types.standard_artifacts import ModelBlessing
-from tfx.utils.dsl_utils import external_input
 from ml_metadata.proto import metadata_store_pb2
 
 
@@ -62,7 +61,7 @@ def create_pipeline(
 
   # Brings data into the pipeline or otherwise joins/converts training data.
   # TODO(step 2): Might use another ExampleGen class for your data.
-  example_gen = CsvExampleGen(input=external_input(data_path))
+  example_gen = CsvExampleGen(input_base=data_path)
   components.append(example_gen)
 
   # Computes statistics over data for visualization and example validation.

@@ -44,7 +44,6 @@ from tfx.proto import trainer_pb2
 from tfx.types import Channel
 from tfx.types.standard_artifacts import Model
 from tfx.types.standard_artifacts import ModelBlessing
-from tfx.utils.dsl_utils import external_input
 
 from ml_metadata.proto import metadata_store_pb2
 
@@ -72,7 +71,7 @@ def create_pipeline(
   components = []
 
   # Brings data into the pipeline or otherwise joins/converts training data.
-  example_gen = CsvExampleGen(input=external_input(data_path))
+  example_gen = CsvExampleGen(input_base=data_path)
   # TODO(step 7): (Optional) Uncomment here to use BigQuery as a data source.
   # example_gen = big_query_example_gen_component.BigQueryExampleGen(
   #     query=query)

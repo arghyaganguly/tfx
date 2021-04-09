@@ -10,6 +10,8 @@
 *  Trainer now uses GenericExecutor as default. To use the previous Estimator
    based Trainer, please set custom_executor_spec to trainer.executor.Executor.
 
+*  Deprecated input parameter, externap_input in ExampleGen constructor.
+
 ### For Pipeline Authors
 
 ### For Component Authors
